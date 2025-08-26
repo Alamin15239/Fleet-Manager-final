@@ -601,31 +601,33 @@ async function main() {
     console.log('Existing jobs cleared.')
 
     // Insert new maintenance jobs using upsert to handle duplicates
-    console.log('Inserting maintenance jobs...')
-    const createdJobs = await Promise.all(
-      maintenanceJobs.map(async (job) => {
-        return await prisma.maintenanceJob.upsert({
-          where: {
-            name_category: {
-              name: job.name,
-              category: job.category
-            }
-          },
-          update: {
-            parts: job.parts || null,
-            notes: job.notes || null,
-            isActive: true
-          },
-          create: {
-            name: job.name,
-            category: job.category,
-            parts: job.parts || null,
-            notes: job.notes || null,
-            isActive: true
-          }
-        })
-      })
-    )
+    console.log('Inserting maintenance jobs...');
+
+for (const job of maintenanceJobs) {
+  await prisma.maintenanceJob.upsert({
+    where: {
+      name_category: {
+        name: job.name,
+        category: job.category,
+      },
+    },
+    update: {
+      parts: job.parts || null,
+      notes: job.notes || null,
+      isActive: true,
+    },
+    create: {
+      name: job.name,
+      category: job.category,
+      parts: job.parts || null,
+      notes: job.notes || null,
+      isActive: true,
+    },
+  });
+}
+
+console.log('All jobs inserted.');
+
 
     console.log(`Successfully created ${createdJobs.length} maintenance jobs!`)
 
