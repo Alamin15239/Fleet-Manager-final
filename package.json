@@ -15,7 +15,8 @@
     "db:setup-prod": "tsx scripts/setup-production-db.ts",
     "db:setup-vercel": "tsx scripts/vercel-setup.ts",
     "test:email": "tsx test-email-config.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
