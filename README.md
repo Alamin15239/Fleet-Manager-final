@@ -919,5 +919,6 @@ For support and questions:
 
 **Last Updated**: January 2024  
 **Version**: 1.0.0  
-**Framework**: Next.js 15 with TypeScript#   F l e e t - M a n a g e r - f i n a l  
+**Framework**: Next.js 15 with TypeScript#   F l e e t - M a n a g e r - f i n a l 
+ 
  
