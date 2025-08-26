@@ -116,7 +116,7 @@
     "typescript": "^5"
   },
    "engines": {
-    "node": "18.x"
+    "node": "22.x"
   }
 }
 
