@@ -68,10 +68,21 @@ export default function LoginPage() {
     } catch (error: any) {
       console.error('Login error:', error)
       
-      // Note: Removed email verification and approval checks
-      // Users can now log in regardless of verification/approval status
-      
-      setError('Invalid email or password')
+      if (error.message === 'Please verify your email address before logging in') {
+        setError('Please verify your email address first. Check your email for the verification link.')
+        // Optionally redirect to verify email page
+        setTimeout(() => {
+          router.push('/verify-email?email=' + encodeURIComponent(email))
+        }, 2000)
+      } else if (error.message === 'Your account is pending admin approval') {
+        setError('Your account is pending admin approval. Please wait for an administrator to approve your account.')
+        // Optionally redirect to pending approval page
+        setTimeout(() => {
+          router.push('/pending-approval')
+        }, 2000)
+      } else {
+        setError('Invalid email or password')
+      }
     } finally {
       setLoading(false)
     }
@@ -128,15 +139,24 @@ export default function LoginPage() {
       if (response.ok) {
         toast.success('Login successful!')
         
-        // Note: Removed admin approval check
-        // Users can now log in regardless of verification/approval status
-        
         // Redirect to intended page or dashboard
         const redirectPath = localStorage.getItem('redirectAfterLogin') || '/'
         localStorage.removeItem('redirectAfterLogin')
         router.push(redirectPath)
       } else {
-        setError(data.error || 'OTP verification failed')
+        const errorMessage = data.error || 'OTP verification failed'
+        setError(errorMessage)
+        
+        // Handle specific error messages
+        if (errorMessage.includes('verify your email')) {
+          setTimeout(() => {
+            router.push('/verify-email?email=' + encodeURIComponent(email))
+          }, 2000)
+        } else if (errorMessage.includes('pending admin approval')) {
+          setTimeout(() => {
+            router.push('/pending-approval')
+          }, 2000)
+        }
       }
     } catch (error) {
       console.error('OTP login error:', error)
@@ -230,6 +250,14 @@ export default function LoginPage() {
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
+                    </div>
+                    <div className="text-right">
+                      <Link 
+                        href="/forgot-password"
+                        className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        Forgot password?
+                      </Link>
                     </div>
                   </div>
 
@@ -329,7 +357,7 @@ export default function LoginPage() {
               </TabsContent>
             </Tabs>
 
-            <div className="mt-6 text-center">
+            <div className="mt-4 text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Don't have an account?{' '}
                 <Link 
@@ -337,6 +365,14 @@ export default function LoginPage() {
                   className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   Sign up
+                </Link>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                <Link 
+                  href="/forgot-password"
+                  className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  Forgot your password?
                 </Link>
               </p>
             </div>

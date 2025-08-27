@@ -42,9 +42,13 @@ export async function POST(request: NextRequest) {
       if (error.message === 'Invalid credentials') {
         errorMessage = 'Invalid email or password'
         statusCode = 401
+      } else if (error.message === 'Please verify your email address before logging in') {
+        errorMessage = 'Please verify your email address before logging in'
+        statusCode = 403
+      } else if (error.message === 'Your account is pending admin approval') {
+        errorMessage = 'Your account is pending admin approval'
+        statusCode = 403
       }
-      // Note: Removed email verification and approval error handling
-      // Users can now log in regardless of verification/approval status
     }
 
     return NextResponse.json(

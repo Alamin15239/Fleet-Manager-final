@@ -54,9 +54,15 @@ export async function authenticateUser(email: string, password: string) {
       throw new Error('Account has been disabled by administrator')
     }
 
-    // Note: Removed email verification and approval requirements for login
-    // Users can now log in regardless of verification/approval status
-    // These will be checked at feature level instead
+    // Check if email is verified
+    if (!user.isEmailVerified) {
+      throw new Error('Please verify your email address before logging in')
+    }
+
+    // Check if user is approved by admin
+    if (!user.isApproved) {
+      throw new Error('Your account is pending admin approval')
+    }
 
     const isValidPassword = await verifyPassword(password, user.password)
     if (!isValidPassword) {

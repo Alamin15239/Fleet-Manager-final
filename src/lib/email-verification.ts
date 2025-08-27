@@ -494,6 +494,135 @@ class EmailVerificationService {
       return { success: false, message: 'Failed to verify OTP' }
     }
   }
+
+  // Send password reset email using Gmail SMTP
+  async sendPasswordResetEmail(email: string, resetLink: string, name?: string): Promise<void> {
+    try {
+      const hasEmailConfig = process.env.EMAIL_USER && process.env.EMAIL_PASS
+
+      if (!hasEmailConfig) {
+        // Development mode - log reset link to console
+        console.log('\n\n=== 📧 DEVELOPMENT MODE - EMAIL CONFIGURATION MISSING ===')
+        console.log(`🔑 Password Reset for ${email}`)
+        console.log(`👤 Name: ${name || 'N/A'}`)
+        console.log(`🔗 Reset Link: ${resetLink}`)
+        console.log(`⚙️  To enable email sending, configure Gmail SMTP in .env file`)
+        console.log(`========================================================\n\n`)
+        return
+      }
+
+      const mailOptions = {
+        from: process.env.EMAIL_FROM || `"Fleet Manager" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: '🔐 Reset Your Password - Fleet Manager',
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Fleet Manager - Password Reset</title>
+          </head>
+          <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+              <!-- Header -->
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; color: white;">
+                <div style="font-size: 28px; font-weight: bold; margin-bottom: 8px;">🚛 Fleet Manager</div>
+                <div style="opacity: 0.9; font-size: 16px;">Maintenance Management System</div>
+              </div>
+              
+              <!-- Content -->
+              <div style="padding: 40px 30px;">
+                <h2 style="color: #333; margin-top: 0; font-size: 24px;">Reset Your Password</h2>
+                <p style="color: #666; line-height: 1.6; font-size: 16px;">
+                  ${name ? `Hello ${name},` : 'Hello,'}
+                </p>
+                <p style="color: #666; line-height: 1.6; font-size: 16px;">
+                  We received a request to reset your password for your Fleet Manager account. Click the button below to create a new password.
+                </p>
+                
+                <!-- Reset Button -->
+                <div style="text-align: center; margin: 35px 0;">
+                  <a href="${resetLink}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 35px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                    🔐 Reset Password
+                  </a>
+                </div>
+                
+                <!-- Alternative Link -->
+                <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                  <div style="color: #495057; font-size: 14px; font-weight: bold; margin-bottom: 8px;">
+                    🔗 Or copy and paste this link:
+                  </div>
+                  <div style="color: #6c757d; line-height: 1.5; font-size: 12px; word-break: break-all; font-family: 'Courier New', monospace;">
+                    ${resetLink}
+                  </div>
+                </div>
+                
+                <!-- Security Notice -->
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                  <div style="color: #856404; font-size: 15px; font-weight: bold; margin-bottom: 8px;">
+                    🔒 Security Notice:
+                  </div>
+                  <div style="color: #856404; font-size: 14px; line-height: 1.5;">
+                    • This password reset link will expire in <strong>1 hour</strong><br>
+                    • If you didn't request this, please ignore this email<br>
+                    • Never share your password with anyone<br>
+                    • Our team will never ask for your password
+                  </div>
+                </div>
+                
+                <!-- Instructions -->
+                <div style="background: #e3f2fd; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                  <div style="color: #1565c0; font-size: 15px; font-weight: bold; margin-bottom: 8px;">
+                    📋 What to do:
+                  </div>
+                  <div style="color: #1565c0; font-size: 14px; line-height: 1.5;">
+                    1. Click the "Reset Password" button above<br>
+                    2. Create a new, strong password<br>
+                    3. Use your new password to login to your account<br>
+                    4. If you have any issues, contact our support team
+                  </div>
+                </div>
+                
+                <p style="color: #666; line-height: 1.6; font-size: 16px; margin-bottom: 0;">
+                  If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
+                </p>
+              </div>
+              
+              <!-- Footer -->
+              <div style="background: #2c3e50; color: white; text-align: center; padding: 25px; font-size: 13px;">
+                <div style="margin-bottom: 8px;">© 2024 Fleet Manager. All rights reserved.</div>
+                <div style="opacity: 0.8; font-size: 12px;">
+                  This is an automated message. Please do not reply to this email.
+                </div>
+                <div style="opacity: 0.8; font-size: 12px; margin-top: 8px;">
+                  Need help? Contact support@fleetmanager.com
+                </div>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      }
+
+      await this.transporter.sendMail(mailOptions)
+      console.log(`✅ Password reset email sent successfully to ${email}`)
+      
+    } catch (error) {
+      console.error('❌ Error sending password reset email:', error)
+      
+      // Fallback to development mode if email fails
+      console.log('\n\n=== 📧 FALLBACK - DEVELOPMENT MODE ===')
+      console.log(`🔑 Password Reset for ${email}`)
+      console.log(`👤 Name: ${name || 'N/A'}`)
+      console.log(`🔗 Reset Link: ${resetLink}`)
+      console.log(`❌ Email sending failed, showing link in console`)
+      console.log(`=========================================\n\n`)
+      
+      // Don't throw error to allow development mode to work
+      // throw new Error('Failed to send password reset email')
+    }
+  }
 }
 
 // Export singleton instance
